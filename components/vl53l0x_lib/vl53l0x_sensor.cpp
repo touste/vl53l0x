@@ -322,7 +322,8 @@ void VL53L0XSensorMod::loop() {
       this->read_byte_16(0x14 + 10, &range_mm);
 
       // Read range status from result register (bits 3-5 of byte at 0x14)
-      uint8_t range_status = (reg(0x14).get() >> 3) & 0x0F;
+      // Valid range status values are 0-5 (3 bits), so mask with 0x07
+      uint8_t range_status = (reg(0x14).get() >> 3) & 0x07;
 
       reg(0x0B) = 0x01; // Clear interrupt
       this->waiting_for_interrupt_ = false;
