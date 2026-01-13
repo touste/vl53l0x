@@ -292,15 +292,52 @@ void VL53L0XSensorMod::update() {
 }
 
 void VL53L0XSensorMod::loop() {
-  // Timeout recovery: if stuck in reading state for more than 5 seconds, reset
+  // Reset timeout counter on successful reading completion
+  if (!this->initiated_read_ && !this->waiting_for_interrupt_) {
+    this->timeout_counter_ = 0;
+  }
+
+  // Progressive timeout recovery: if stuck in reading state for more than 5 seconds
   const uint32_t READ_TIMEOUT_MS = 5000;
+  const uint8_t MAX_TIMEOUTS_BEFORE_HARD_RESET = 3;
+  
   if ((this->initiated_read_ || this->waiting_for_interrupt_) &&
       (millis() - this->read_start_time_ > READ_TIMEOUT_MS)) {
-    ESP_LOGW(TAG, "'%s' - Reading timed out, resetting sensor state",
-             this->name_.c_str());
+    this->timeout_counter_++;
+    ESP_LOGW(TAG, "'%s' - Reading timed out (count: %d), resetting sensor state",
+             this->name_.c_str(), this->timeout_counter_);
+    
+    if (this->timeout_counter_ >= MAX_TIMEOUTS_BEFORE_HARD_RESET) {
+      // Hard reset: Full sensor reinitialization
+      ESP_LOGW(TAG, "'%s' - Performing hard reset (full setup)", this->name_.c_str());
+      this->timeout_counter_ = 0;
+      this->initiated_read_ = false;
+      this->waiting_for_interrupt_ = false;
+      this->setup();
+      return;
+    }
+    
+    // Soft reset: Stop measurement and reinitialize ranging sequence
     this->initiated_read_ = false;
     this->waiting_for_interrupt_ = false;
-    // Clear any pending interrupts
+    
+    // Stop any ongoing measurement
+    reg(0x00) = 0x00;
+    delay(1); // Let sensor stabilize
+    
+    // Clear interrupts before reinitialization
+    reg(0x0B) = 0x01;
+    
+    // Reinitialize ranging sequence (same as update() method)
+    reg(0x80) = 0x01;
+    reg(0xFF) = 0x01;
+    reg(0x00) = 0x00;
+    reg(0x91) = this->stop_variable_;
+    reg(0x00) = 0x01;
+    reg(0xFF) = 0x00;
+    reg(0x80) = 0x00;
+    
+    // Clear interrupts after reinitialization
     reg(0x0B) = 0x01;
     return;
   }
