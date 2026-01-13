@@ -102,6 +102,7 @@ protected:
   uint8_t stop_variable_{0};
   uint32_t read_start_time_{
       0}; // Track when reading started for timeout recovery
+  uint8_t timeout_counter_{0};
   VL53L0XSenseMode sense_mode_{VL53L0X_SENSE_DEFAULT};
   bool enable_sigma_check_{true};
   bool enable_signal_check_{true};
