@@ -69,6 +69,9 @@ public:
   void set_enable_temperature_recal(bool enable) {
     this->enable_temperature_recal_ = enable;
   }
+  void set_reading_timeout_ms(uint32_t timeout_ms) {
+    this->reading_timeout_ms_ = timeout_ms;
+  }
 
 protected:
   void apply_offset_calibration_();
@@ -102,7 +105,7 @@ protected:
   uint8_t stop_variable_{0};
   uint32_t read_start_time_{
       0}; // Track when reading started for timeout recovery
-  uint8_t timeout_counter_{0};
+  uint32_t reading_timeout_ms_{5000}; // Hard reset timeout (default 5 seconds)
   VL53L0XSenseMode sense_mode_{VL53L0X_SENSE_DEFAULT};
   bool enable_sigma_check_{true};
   bool enable_signal_check_{true};

@@ -35,6 +35,7 @@ CONF_TIMING_BUDGET = "timing_budget"
 CONF_OFFSET_CALIBRATION = "offset_calibration"
 CONF_CROSSTALK_COMPENSATION = "crosstalk_compensation"
 CONF_ENABLE_TEMPERATURE_RECAL = "enable_temperature_recal"
+CONF_READING_TIMEOUT = "reading_timeout"
 
 
 def check_keys(obj):
@@ -79,6 +80,10 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_OFFSET_CALIBRATION): cv.int_range(min=-512000, max=511000),
             cv.Optional(CONF_CROSSTALK_COMPENSATION): cv.float_range(min=0.0, max=10.0),
             cv.Optional(CONF_ENABLE_TEMPERATURE_RECAL, default=False): cv.boolean,
+            cv.Optional(CONF_READING_TIMEOUT, default="5s"): cv.All(
+                cv.positive_time_period_milliseconds,
+                cv.Range(min=cv.TimePeriod(milliseconds=1000), max=cv.TimePeriod(milliseconds=60000)),
+            ),
             cv.Optional(CONF_TIMEOUT, default="10ms"): check_timeout,
             cv.Optional(CONF_ENABLE_PIN): pins.gpio_output_pin_schema,
         }
@@ -104,6 +109,7 @@ async def to_code(config):
     if CONF_CROSSTALK_COMPENSATION in config:
         cg.add(var.set_crosstalk_compensation(config[CONF_CROSSTALK_COMPENSATION]))
     cg.add(var.set_enable_temperature_recal(config[CONF_ENABLE_TEMPERATURE_RECAL]))
+    cg.add(var.set_reading_timeout_ms(config[CONF_READING_TIMEOUT]))
     cg.add(var.set_timeout_us(config[CONF_TIMEOUT]))
 
     if CONF_ENABLE_PIN in config:
