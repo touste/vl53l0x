@@ -130,21 +130,6 @@ reading_timeout: 5s  # Default value, range: 1s to 60s
 - If the sensor gets stuck in a reading state for longer than `reading_timeout`, a full hardware reset is performed
 - The timeout triggers a complete sensor reinitialization via `setup()`
 - Default timeout is 5 seconds, adjustable between 1-60 seconds
-- No progressive recovery or counting - immediate hard reset when timeout occurs
-
-**When to adjust:**
-- **Increase timeout** (e.g., `10s`) if you have a slow I2C bus or long timing budgets
-- **Decrease timeout** (e.g., `3s`) for faster recovery in critical applications
-- Keep default `5s` for most use cases
-
-**Example:**
-```yaml
-sensor:
-  - platform: vl53l0x_lib
-    name: "Distance Sensor"
-    reading_timeout: 10s  # Longer timeout for stability
-    update_interval: 2s
-```
 
 ## Multiple Sensors
 
