@@ -3,3 +3,6 @@
 # You can modify this file to suit your needs.
 /.esphome/
 /secrets.yaml
+
+# CodeQL
+_codeql_detected_source_root
